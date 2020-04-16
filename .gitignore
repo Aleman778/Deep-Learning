@@ -114,5 +114,5 @@ _build
 _static
 _templates
 
-# Toy Datast
-MNIST/
+# Datasets
+data/
