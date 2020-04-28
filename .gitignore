@@ -116,3 +116,6 @@ _templates
 
 # Datasets
 data/
+
+# Don't include possible large model checkpoint files
+*.pth.tar
