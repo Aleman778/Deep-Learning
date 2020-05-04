@@ -3,21 +3,20 @@
 ## Model 1: Almost Untrained 
 - Training CNN_basic on MNIST with learning rate 1e-6 and for one epoch only results in **6.470%** accuracy on the test set.
 
-- PCA
+### PCA
 ![PCA](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise3/PCA1.png)
 
-- t-SNE
+### t-SNE
 ![tSNE](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise3/tSNE1.png)
 
 ## Model 2: Long Training
 - Training CNN_basic on MNIST for 10 epochs results in **90.970%** accuracy on the test set.
 
-- PCA
+### PCA
 ![PCA](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise3/PCA10.png)
 
--t-SNE
+### t-SNE
 ![tSNE](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise3/tSNE10.png)
-
 
 ## Part A - PCA vs t-SNE
 PCA is mainly concerned in preserving large distances. Otherwise, it is not good in reproducing local structure from high dimensional space to the low dimensional map. Comparing PCA1.png (training for 1 epoch) and PCA10.png (training for 10 epochs), we do not see big differences, although the accuracy has jumped from 6 % to 90%!
