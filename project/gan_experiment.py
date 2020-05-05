@@ -32,7 +32,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['figure.figsize'] = [15, 10]
 
     # Setting seed for RNGs (set to constant for reproducability).
-    manualSeed = 999 # time.time()
+    manualSeed = 42 # time.time()
     print("Random Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
@@ -52,31 +52,31 @@ if __name__ == '__main__':
     num_workers = 4
 
     # Size of input images (images are resized to this using transformer)
-    image_size = 28
+    image_size = 32
 
     # Size of one batch during training
-    batch_size = 64
+    batch_size = 128
 
     # Number of channels in the training images (color RGB uses 3 channels)
-    nc = 1
+    nc = 3
 
     # Size of z latent vector (i.e. size of generator input)
     nz = 100
 
     # Size of feature maps in generator
-    ngf = 28
+    ngf = 32
 
     # Size of feature maps in discriminator
-    ndf = 28
+    ndf = 32
 
     # Number of epochs
-    num_epochs = 1
+    num_epochs = 5
 
     # Learning rate for optimizer
-    lr = 0.0001
+    lr = 0.0002
 
     # Beta1 hyperparameter for Adam optimizers
-    beta1 = 0.9
+    beta1 = 0.5
 
     """## Setup up the datasets"""
 
@@ -94,16 +94,16 @@ if __name__ == '__main__':
     # Prepare train dataset
     train_dataset = datasets.CIFAR10(data_dir, train=True, download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(train_dataset,
-                                               batch_size=batch_size,
-                                               shuffle=shuffle,
-                                               num_workers=num_workers)
+                                                batch_size=batch_size,
+                                                shuffle=shuffle,
+                                                num_workers=num_workers)
 
     # Prepare test dataset                                         
     test_dataset = datasets.CIFAR10(data_dir, train=False, download=False, transform=transform)
     test_loader = torch.utils.data.DataLoader(test_dataset,
-                                              batch_size=batch_size,
-                                              shuffle=shuffle,
-                                              num_workers=num_workers)
+                                                batch_size=batch_size,
+                                                shuffle=shuffle,
+                                                num_workers=num_workers)
 
     # Dataset information
     train_size = len(train_loader)
@@ -117,18 +117,20 @@ if __name__ == '__main__':
     print("Training on:", device_name)
 
     # Let's print some samples from the dataset
-    # inputs, classes = next(iter(train_loader));
-    # inputs = vutils.make_grid(inputs, padding=2, normalize=True)
-    # plt.figure(1)
-    # plt.axis("off")
-    # plt.imshow(np.transpose(inputs, (1, 2, 0)))
-    # title = ""
-    # for i, x in enumerate(classes):
-    #     title += class_names[x] + ", " 
-    #     if (i % 8) == 7:
-    #         title += "\n"
-    # plt.title(title)
-    
+    inputs, classes = next(iter(train_loader));
+    inputs = torchvision.utils.make_grid(inputs, padding=2, normalize=True)
+    plt.figure(figsize=(12, 8))
+    plt.axis("off")
+    plt.imshow(np.transpose(inputs, (1, 2, 0)))
+    title = ""
+    for i, x in enumerate(classes):
+        title += class_names[x] + ", " 
+        if (i % 8) == 7:
+            title += "\n"
+    plt.title(title)
+    plt.show()
+    plt.pause(0.001)
+    print("")
 
     """## Setup the model"""
 
@@ -143,21 +145,22 @@ if __name__ == '__main__':
             nn.init.constant_(model.bias.data, 0)
 
 
+
     # Generator model is a Transposed (or fractional-strided) convolutional neural network
     #     input: latent vector `Z` of `nz` dimensions
     #     output: image that has been generated from input vector
     generator_model = nn.Sequential(
         # INPUT - latent vector Z is the input to convolution
-        nn.ConvTranspose2d(nz, ngf*4, kernel_size=3, stride=1, padding=0, bias=False),
+        nn.ConvTranspose2d(nz, ngf*4, kernel_size=4, stride=1, padding=0, bias=False),
         nn.BatchNorm2d(ngf*4),
         nn.ReLU(inplace=True),
 
-        # CONV1 - current dimension is: (ngf*4) * (image_size/8) * (image_size/8)
+        # CONV1 - current dimension is: (ngf) * (image_size/8) * (image_size/8)
         nn.ConvTranspose2d(ngf*4, ngf*2, kernel_size=4, stride=2, padding=1, bias=False),
         nn.BatchNorm2d(ngf*2),
         nn.ReLU(inplace=True),
 
-        # CONV2 - current dimension is: (ngf*2) * (image_size/4) * (image_size/4)
+        # CONV2 - current dimension is: (ngf*4) * (image_size/4) * (image_size/4)
         nn.ConvTranspose2d(ngf*2, ngf, kernel_size=4, stride=2, padding=1, bias=False),
         nn.BatchNorm2d(ngf),
         nn.ReLU(inplace=True),
@@ -182,23 +185,22 @@ if __name__ == '__main__':
         nn.Conv2d(nc, ndf, kernel_size=4, stride=2, padding=1, bias=False),
         nn.LeakyReLU(0.2, inplace=True),
 
-        # CONV1 - current dimension is: (ndf) * (image_size/2) * (image_size/2)
+        # CONV1 - current dimension is: (ndf*2) * (image_size/2) * (image_size/2)
         nn.Conv2d(ndf, ndf*2, kernel_size=4, stride=2, padding=1, bias=False),
         nn.BatchNorm2d(ndf*2),
         nn.LeakyReLU(0.2, inplace=True),
 
-        # CONV2 - current dimension is: (ndf*2) * (image_size/4) * (image_size/4)
+        # CONV2 - current dimension is: (ndf*4) * (image_size/4) * (image_size/4)
         nn.Conv2d(ndf*2, ndf*4, kernel_size=4, stride=2, padding=1, bias=False),
         nn.BatchNorm2d(ndf*4),
         nn.LeakyReLU(0.2, inplace=True),
 
-        # CONV3 - current dimension is: (ndf*4) * (image_size/8) * (image_size/8)
-        nn.Conv2d(ndf*4, 1, kernel_size=3, stride=1, padding=0, bias=False),
+        # CONV3 - current dimension is: (ndf*8) * (image_size/8) * (image_size/8)
+        nn.Conv2d(ndf*4, 1, kernel_size=4, stride=1, padding=0, bias=False),
         nn.Sigmoid()
 
         # OUTPUT - single number between 0.0 (fake) and 1.0 (real)
     )
-
 
     # Send both models to the selected device
     discriminator_model.to(device)
@@ -208,10 +210,11 @@ if __name__ == '__main__':
     criterion = nn.BCELoss()
 
     # The optimizer for weight updating
-    g_optimizer = optim.Adam(generator_model.parameters(), lr=lr, betas=(beta1, 0))
-    d_optimizer = optim.Adam(discriminator_model.parameters(), lr=lr, betas=(beta1, 0))
+    g_optimizer = optim.Adam(generator_model.parameters(), lr=lr, betas=(beta1, 0.999))
+    d_optimizer = optim.Adam(discriminator_model.parameters(), lr=lr, betas=(beta1, 0.999))
 
     """## Testing the generator before training"""
+
     input_noise = torch.randn(1, nz, 1, 1, device=device)
 
     plt.figure(2)
@@ -220,11 +223,25 @@ if __name__ == '__main__':
     plt.title("Input noise")
 
     generated_image = generator_model(input_noise)
-    fake_image = transforms.functional.to_pil_image(generated_image.cpu().view(3, 32, 32))
+    fake_image = transforms.functional.to_pil_image(generated_image.cpu().view(nc, image_size, image_size))
 
     plt.subplot(1, 2, 2)
     plt.imshow(fake_image)
     plt.title("Output from generator")
+    plt.show()
+
+    """## Utility functions"""
+
+    def draw_plot(data, epoch, title="Training"):
+        title = title + " on " + device_name
+        plot = alt.Chart(data, width=1200, height=400, title=title).mark_line().encode(
+            alt.X("Epoch:Q", scale=alt.Scale(zero=False), axis=alt.Axis(title="Epoch", tickCount=epoch)),
+            alt.Y("Value:Q", scale=alt.Scale(zero=False), axis=alt.Axis(title="Value")),
+            color=alt.Color("Legend", legend=alt.Legend(title="Value by color")))
+        plot.background = "#EFEFEF"
+        plot = plot.interactive(bind_y=True)
+        plot = plot.configure_view(strokeOpacity=0)
+        plot.display()
 
     """## Training the model"""
 
@@ -326,7 +343,7 @@ if __name__ == '__main__':
 
             # Reset the discriminator gradients
             generator_model.zero_grad()
-            
+
             # Generate batch of new latent vectors
             noise = torch.randn(b_size, nz, 1, 1, device=device)
 
@@ -399,7 +416,7 @@ if __name__ == '__main__':
         g_train_losses.append(epoch_stats["generator_train_loss"]/train_size)
         g_train_accuracies.append(epoch_stats["generator_train_corrects"]/train_size)
 
-    """## Plotting the results"""
+    """## Plotting the Results"""
 
     plt.figure(3)
     plt.title("Generator and Discriminator Batch Losses During Training")
@@ -448,6 +465,4 @@ if __name__ == '__main__':
     plt.title("Fake Images")
     plt.imshow(np.transpose(img_list[-1],(1,2,0)))
 
-
     plt.show()
-
