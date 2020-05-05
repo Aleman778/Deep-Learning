@@ -192,10 +192,10 @@ def _main(args):
     _make_folder_if_not_exists(os.path.dirname(args.output_file))
 
     if args.tensorboard:
-        if args.output.endwith('.png'):
-            output_loc = os.path.dirname(args.output)
+        if args.output_file.endswith('.png'):
+            output_loc = os.path.dirname(args.output_file)
         else:
-            output_loc = args.output
+            output_loc = args.output_file
         writer = SummaryWriter(log_dir=output_loc)
         # with Pool(16) as pool:
         # images = pool.map(_load_thumbnail, filenames)
@@ -223,7 +223,7 @@ if __name__ == "__main__":
                         help='which embedding to use for the features',
                         choices=embedding_options,
                         type=str)
-    parser.add_argument('--output',
+    parser.add_argument('--output-file',
                         type=str,
                         default='./output.png',
                         help='path to generate output image')
