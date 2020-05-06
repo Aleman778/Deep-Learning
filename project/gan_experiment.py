@@ -32,7 +32,7 @@ if __name__ == '__main__':
     matplotlib.rcParams['figure.figsize'] = [15, 10]
 
     # Setting seed for RNGs (set to constant for reproducability).
-    manualSeed = 42 # time.time()
+    manualSeed = time.time()
     print("Random Seed: ", manualSeed)
     random.seed(manualSeed)
     torch.manual_seed(manualSeed)
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     ndf = 32
 
     # Number of epochs
-    num_epochs = 5
+    num_epochs = 80
 
     # Learning rate for optimizer
     lr = 0.0002

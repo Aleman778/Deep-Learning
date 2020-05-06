@@ -117,5 +117,8 @@ _templates
 # Datasets
 data/
 
+# Deepdiva outputs
+deepdiva/output
+
 # Don't include possible large model checkpoint files
 *.pth.tar
