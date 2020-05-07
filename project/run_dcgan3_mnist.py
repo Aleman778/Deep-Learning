@@ -26,18 +26,18 @@ if __name__ == '__main__':
     e.params["num_workers"] = 4    # Number of worker threads for dataloader
     e.params["image_size"]  = 32   # Size of input images (images are resized to this using transformer)
     e.params["batch_size"]  = 128  # Size of one batch during training
-    e.params["nc"]          = 3    # Number of channels in the training images (color RGB uses 3 channels)
+    e.params["nc"]          = 1    # Number of channels in the training images (color RGB uses 3 channels)
     e.params["nz"]          = 100  # Size of z latent vector (i.e. size of generator input)
-    e.params["im_size"]     = 32   # Size of the images discriminated and generated.
+    e.params["im_size"]     = 28   # Size of the images discriminated and generated.
     e.params["num_epochs"]  = e.input_int("number of epochs", 5) # Number of epochs 
     e.params["lr"]          = 0.0002       # Learning rate for optimizer
     e.params["betas"]       = (0.5, 0.999) # Betas hyperparameter for Adam optimizers
 
     # Setup the CIFAR10 dataset
-    transform = utils.image_transform(e.params["im_size"])
-    data_dir = "data/cifar10/"
-    train_dataset = datasets.CIFAR10(data_dir, train=True, download=True, transform=transform)
-    test_dataset = datasets.CIFAR10(data_dir, train=False, download=False, transform=transform)
+    transform = utils.image_transform(e.params["im_size"], nc=e.params["nc"])
+    data_dir = "data/mnist/"
+    train_dataset = datasets.MNIST(data_dir, train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST(data_dir, train=False, download=False, transform=transform)
     e.setup_dataloader((train_dataset, None, test_dataset))
     
     # Plot a subset of the training dataset
