@@ -15,11 +15,7 @@ import gantraining
 
 if __name__ == '__main__':
     # Setup a new experiment, keeps results in one folder
-    e = utils.create_experiment("experiments/dcgan3")
-
-    # Optionally load a pretrained model
-    pretrained = False
-    pretrained_path = "models/best_model.pth.tar"
+    e = utils.create_experiment("experiments/dcgan3_cifar10")
 
     # Hyperparameters
     e.params["shuffle"]     = True # Shuffle the contents in the dataset
@@ -32,6 +28,7 @@ if __name__ == '__main__':
     e.params["num_epochs"]  = e.input_int("number of epochs", 5) # Number of epochs 
     e.params["lr"]          = 0.0002       # Learning rate for optimizer
     e.params["betas"]       = (0.5, 0.999) # Betas hyperparameter for Adam optimizers
+    e.params["patience"]    = 7 # Number of epochs to wait before early stopping
 
     # Setup the CIFAR10 dataset
     transform = utils.image_transform(e.params["im_size"])
@@ -56,5 +53,4 @@ if __name__ == '__main__':
 
     # Train model and plot results
     gantraining.train_model(e)
-    gantraining.plot_batch_losses(e, "batch_losses.png")
-    gantraining.plot_training_stats(e, "epoch_train_stats.png")
+    gantraining.plot_all(e)

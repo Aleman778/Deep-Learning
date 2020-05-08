@@ -1,4 +1,6 @@
 import os, shutil
+import time
+import random
 import numpy as np
 import logging
 import torch
@@ -31,6 +33,7 @@ def image_transform(im_size, nc=3):
     ])
 
 
+
 def plot_data_subset(path, dataset, indices=range(32), show_labels=True, figsize=(12, 8)):
     subset = torch.utils.data.Subset(dataset, indices)
     dataloader = torch.utils.data.DataLoader(subset, batch_size=len(subset))
@@ -47,14 +50,14 @@ def plot_data_subset(path, dataset, indices=range(32), show_labels=True, figsize
             if (i % 8) == 7:
                 title += "\n"
         plt.title(title)
-    plt.savefig(path, bbox_inches='tight', pad_inches=0)
+    plt.savefig(path, bbox_inches="tight", pad_inches=0.2)
 
 
 
 class Experiment:
     """Experiment class defines all the contents of an experiment.
     It is a container for all possible parameters and data recorded."""
-    def __init__(self, name, folder, loglevel):
+    def __init__(self, name, folder, loglevel, seed):
         self.name = name
         self.folder = folder
         self.train_loader = None
@@ -64,14 +67,24 @@ class Experiment:
         self.params = {}
         self.training = {}
         self.testing = {}
+        self._best_loss = 1000000 # used for early stopping, and storing best model
+        self._best_loss_count = 0 # used for early stopping
         logging.basicConfig(filename=os.path.join(folder, "log.txt"),
                             filemode='a',
                             format='%(asctime)s %(name)s %(levelname)s %(message)s',
                             datefmt='%H:%M:%S',
                             level=loglevel)
         logging.getLogger().addHandler(logging.StreamHandler())
-        logging.info("Initialzed experiment: " + name)
+        logging.info("Initialzed experiment: " + str(name))
         self.device = cuda_device_if_available()
+        
+        # Setting seed for RNGs (set to constant for reproducability).
+        if seed == None: seed = time.time()
+        logging.info("Initialize seed: " + str(seed))
+        random.seed(seed)
+        torch.manual_seed(seed)
+        
+
     
 
     def fname(self, name):
@@ -118,7 +131,7 @@ class Experiment:
             return value
 
 
-def create_experiment(base_path, loglevel=logging.INFO):
+def create_experiment(base_path, loglevel=logging.INFO, seed=None):
     """Creates a new experiment using a simple CLI.
     The user is promted to specifiy the name of the experiment."""
     while True:
@@ -146,7 +159,7 @@ def create_experiment(base_path, loglevel=logging.INFO):
             break
     
     os.makedirs(folder)
-    return Experiment(experiment_name, folder, loglevel)
+    return Experiment(experiment_name, folder, loglevel, seed)
     
 
 

@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import torch
 import torchvision
 import torchvision.utils as vutils
@@ -7,8 +8,44 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from torch import nn
 
-         
-def train_model(e):
+
+import training
+import models
+
+        
+##############################################################
+# Heler functions
+##############################################################
+
+
+def save_checkpoint(e, epoch, iteration):
+    """Stores GAN training checkpoint. Can be restored via load_checkpoint."""
+    data = {"epoch": epoch,
+            "iteration": iteration,
+            "g_state_dict": e.generator.state_dict(),
+            "d_state_dict": e.discriminator.state_dict(),
+            "g_optimizer_state_dict": e.g_optimizer.state_dict(),
+            "d_optimizer_state_dict": e.d_optimizer.state_dict()}
+    training._save_checkpoint(e, data)
+
+
+def load_checkpoint(e, path):
+    """Loads the checkpoint """
+    data = training._load_checkpoint(e, path)
+    e.generator.load_state_dict(data["g_state_dict"])
+    e.discriminator.load_state_dict(data["d_state_dict"])
+    e.g_optimizer.load_state_dict(data["g_optimizer_state_dict"])
+    e.d_optimizer.load_state_dict(data["d_optimizer_state_dict"])
+    return (data["epoch"], data["iteration"])
+
+
+##############################################################
+# Training
+##############################################################
+
+
+def train_model(e, pretrained=False):
+    """Trains the model current loaded in the experiment."""
     # Labels is defined as follows
     fake_label = 0
     real_label = 1
@@ -16,29 +53,32 @@ def train_model(e):
     # Basic dataset information
     train_size = len(e.train_loader)
 
-    # Store some images during training, to see generator progression.
-    img_list = []
+    # Generate some noise, used to see generator progression.
     fixed_noise = torch.randn(64, e.params["nz"], 1, 1, device=e.device)
 
     # Keep track of some running statistics to view after training
-    g_batch_losses = []
-    d_batch_losses = []
-    g_train_losses = []
-    d_train_losses = []
-    g_train_accuracies = []
-    d_train_accuracies = []
-
+    if not pretrained:
+        e.training["image_list"] = []
+        e.training["g_batch_losses"] = []
+        e.training["d_batch_losses"] = []
+        e.training["g_epoch_losses"] = []
+        e.training["d_epoch_losses"] = []
+        e.training["g_epoch_accuracies"] = []
+        e.training["d_epoch_accuracies"] = []
 
     ##############################################################
     # Training loop
     ##############################################################
 
+    # Iteration is the number of batches trained.
+    iteration = 0
+
     for epoch in range(e.params["num_epochs"]):
         epoch_stats = {
-            "discriminator_train_loss": 0.0,
-            "discriminator_train_corrects": 0.0,
-            "generator_train_loss": 0.0,
-            "generator_train_corrects": 0.0}
+            "d_train_loss": 0.0,
+            "d_train_corrects": 0.0,
+            "g_train_loss": 0.0,
+            "g_train_corrects": 0.0}
 
         for batch_num, (real_images, _) in enumerate(e.train_loader):
 
@@ -51,9 +91,9 @@ def train_model(e):
             e.discriminator.zero_grad()
 
             # Setup the input data and label
-            real_images = real_images.to(e.device);
+            real_images = real_images.to(e.device)
             b_size = real_images.size(0)
-            label = torch.full((b_size,), real_label, device=e.device);
+            label = torch.full((b_size,), real_label, device=e.device)
 
             # Forward pass real batch through discriminator
             output = e.discriminator(real_images).view(-1)
@@ -79,7 +119,7 @@ def train_model(e):
 
             # Generate fake image batch using our generator
             fake_images = e.generator(noise)
-            label.fill_(fake_label);
+            label.fill_(fake_label)
 
             # Make predictions for the batch of fake images using discriminator
             output = e.discriminator(fake_images).view(-1)
@@ -102,9 +142,9 @@ def train_model(e):
             d_batch_loss = d_loss_real.item()
             d_batch_loss += d_loss_fake.item()
             d_corrects = torch.sum(d_pred_real == 1).item()
-            d_corrects = torch.sum(d_pred_fake == 0).item()
-            epoch_stats["discriminator_train_loss"] += d_batch_loss
-            epoch_stats["discriminator_train_corrects"] += d_corrects
+            d_corrects += torch.sum(d_pred_fake == 0).item()
+            epoch_stats["d_train_loss"] += d_batch_loss
+            epoch_stats["d_train_corrects"] += d_corrects
 
 
             ##############################################################
@@ -126,7 +166,7 @@ def train_model(e):
             output = e.discriminator(fake_images).view(-1)
 
             # When training the generator we want the discriminator to think our fake images are real
-            label.fill_(real_label);
+            label.fill_(real_label)
 
             # Compute the loss using set criterion
             g_loss = e.criterion(output, label)
@@ -144,8 +184,8 @@ def train_model(e):
             # Update statistics
             g_batch_loss = g_loss.item()
             g_corrects = torch.sum(g_pred == 1).item()
-            epoch_stats["generator_train_loss"] += g_batch_loss
-            epoch_stats["generator_train_corrects"] += g_corrects
+            epoch_stats["g_train_loss"] += g_batch_loss
+            epoch_stats["g_train_corrects"] += g_corrects
 
             # Print batch stats
             if batch_num % 50 == 0:
@@ -160,59 +200,108 @@ def train_model(e):
                         d_x, d_g_z1, d_g_z2))
 
             # Save batch losses plotting later
-            d_batch_losses.append(d_batch_loss)
-            g_batch_losses.append(g_batch_loss)
+            e.training["d_batch_losses"].append(d_batch_loss)
+            e.training["g_batch_losses"].append(g_batch_loss)
 
 
             # Check the progress of the generator by saving its output on fixed_noise
-            if (batch_num % 500 == 0) or ((epoch == e.params["num_epochs"] - 1) and (batch_num == train_size - 1)):
+            if (batch_num % 500 == 0 ) or (epoch == 0 and batch_num % 50 == 0) or ((epoch == e.params["num_epochs"] - 1) and (batch_num == train_size - 1)):
                 with torch.no_grad():
                     fake_img = e.generator(fixed_noise).detach().cpu()
-                img_list.append(vutils.make_grid(fake_img, padding=2, normalize=True))
+                e.training["image_list"].append(vutils.make_grid(fake_img, padding=2, normalize=True))
 
+            # Increate iterations, number of batches processed
+            iteration += 1 
+
+        g_epoch_loss = epoch_stats["d_train_loss"]/train_size
+        g_epoch_acc  = epoch_stats["d_train_corrects"]/(train_size*e.params["batch_size"]*2)
+        d_epoch_loss = epoch_stats["g_train_loss"]/train_size
+        d_epoch_acc  = epoch_stats["g_train_corrects"]/(train_size*e.params["batch_size"])
+            
         # After finishing an epoch print the epoch stats
         logging.info("Epoch {}/{}: \t[D loss: {:.4f}, acc.:{:.4f}]\t[G loss: {:.4f}, acc.:{:.4f}]".format(
             epoch+1, 
             e.params["num_epochs"],
-            batch_num + 1,
-            train_size + 1,
-            epoch_stats["discriminator_train_loss"]/train_size,
-            epoch_stats["discriminator_train_corrects"]/train_size,
-            epoch_stats["generator_train_loss"]/train_size,
-            epoch_stats["generator_train_corrects"]/train_size))
+            d_epoch_loss,
+            d_epoch_acc,
+            g_epoch_loss,
+            g_epoch_acc))
 
         # Save epoch stats for plotting later
-        d_train_losses.append(epoch_stats["discriminator_train_loss"]/train_size)
-        d_train_accuracies.append(epoch_stats["discriminator_train_corrects"]/train_size)
-        g_train_losses.append(epoch_stats["generator_train_loss"]/train_size)
-        g_train_accuracies.append(epoch_stats["generator_train_corrects"]/train_size)
+        e.training["d_epoch_losses"].append(d_epoch_loss)
+        e.training["d_epoch_accuracies"].append(d_epoch_acc)
+        e.training["d_epoch_losses"].append(g_epoch_loss)
+        e.training["d_epoch_accuracies"].append(g_epoch_acc)
 
-        e.training["discriminator_batch_losses"]     = d_batch_losses
-        e.training["discriminator_train_losses"]     = d_train_losses
-        e.training["discriminator_train_accuracies"] = d_train_losses
-        e.training["generator_batch_losses"]         = g_batch_losses
-        e.training["generator_train_losses"]         = g_train_losses
-        e.training["generator_train_accuracies"]     = g_train_losses
+        # In the first 3 epochs, the generator easily fools (or cheats) the discrimnator with random
+        # noise and acheives quite low loss, let's disregard that when finding the lowest loss.
+        if epoch > 2:
+            if g_epoch_loss < e._best_loss:
+                logging.info("Found lower loss, saving checkpoint")
+                save_checkpoint(e, epoch, iteration)
+            
+            if training._early_stopping(e, g_epoch_loss):
+                return
+
+        
+##############################################################
+# Plotting results
+##############################################################
+
+
+def plot_all(e):
+    plot_batch_losses(e, "training_batch_losses.png")
+    plot_training_stats(e, "training_statistics.png")
+    plot_training_progression(e, "training_progression.gif")
+    plot_real_fake_images(e, "real_fake_images.png")
+        
 
 def plot_batch_losses(e, filename):
-    plt.figure(3)
+    plt.figure()
     plt.title("Generator and Discriminator Batch Losses During Training")
-    plt.plot(e.training["generator_batch_losses"], label="Generator")
-    plt.plot(e.training["discriminator_batch_losses"], label="Discriminator")
+    plt.plot(e.training["g_batch_losses"], label="Generator")
+    plt.plot(e.training["d_batch_losses"], label="Discriminator")
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(e.fname(filename), bbox_inches='tight', pad_inches=0)
+    plt.savefig(e.fname(filename), bbox_inches="tight", pad_inches=0.2)
 
-
+ 
 def plot_training_stats(e, filename):
-    plt.figure(4)
+    plt.figure()
     plt.title("Generator and Discriminator Epoch Losses During Training")
-    plt.plot(e.training["generator_train_accuracies"], label="Generator Accuracy")
-    plt.plot(e.training["discriminator_train_accuracies"], label="Discriminator Accuracy")
-    plt.plot(e.training["generator_train_losses"], label="Generator Loss")
-    plt.plot(e.training["discriminator_train_losses"], label="Discriminator Loss")
+    plt.plot(e.training["g_epoch_accuracies"], label="Generator Accuracy")
+    plt.plot(e.training["d_epoch_accuracies"], label="Discriminator Accuracy")
+    plt.plot(e.training["g_epoch_losses"], label="Generator Loss")
+    plt.plot(e.training["d_epoch_losses"], label="Discriminator Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy/ Loss")
     plt.legend()
-    plt.savefig(e.fname(filename), bbox_inches='tight', pad_inches=0)
+    plt.savefig(e.fname(filename), bbox_inches="tight", pad_inches=0.2)
+
+
+def plot_training_progression(e, filename):
+    fig = plt.figure()
+    plt.axis("off")
+    ims = [[plt.imshow(np.transpose(i,(1,2,0)), animated=True)] for i in e.training["image_list"]]
+    ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
+    plt.title("Generator Progression")
+    ani.save(e.fname(filename), writer="imagemagick", fps=10)
+ 
+
+def plot_real_fake_images(e, filename):
+    real_batch = next(iter(e.train_loader))
+
+    # Plot the real images
+    plt.figure()
+    plt.subplot(1, 2, 1)
+    plt.axis("off")
+    plt.title("Real Images")
+    plt.imshow(np.transpose(vutils.make_grid(real_batch[0], padding=5, normalize=True), (1, 2, 0)))
+
+    # Plot the fake images from the last epoch
+    plt.subplot(1, 2, 2)
+    plt.axis("off")
+    plt.title("Fake Images")
+    plt.imshow(np.transpose(e.training["image_list"][-1],(1,2,0)))
+    plt.savefig(e.fname(filename), bbox_inches="tight", pad_inches=0.2)

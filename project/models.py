@@ -16,7 +16,6 @@ def _init_weights(model):
     elif classname.find("BatchNorm") != -1:
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
-            
 
 
 def dcgan3_discriminator(e):
