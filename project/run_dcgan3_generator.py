@@ -64,8 +64,8 @@ if __name__ == '__main__':
         inputs = torch.zeros(100, e.params["nz"], 1, 1, dtype=torch.float)
         for i in range(10):
             for j in range(10):
-                inputs[i*10 + j][figid] = float(i)/10.0
-                inputs[i*10 + j][figid + 1] = float(j)/10.0
+                inputs[i*10 + j][figid] = float(i)/10.0       
+                inputs[i*10 + j][figid + 1] = float(j)/10.0   
         inputs = inputs.to(e.device)
         outputs = e.generator(inputs)
         plot_images(outputs, "generated_" + str(figid) + ".png")
