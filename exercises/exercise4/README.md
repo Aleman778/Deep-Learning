@@ -89,6 +89,9 @@ KING RICHARD III
 ## Task 4
 We tried to modfiy the char-RNN to work with word embeddings, in particular we tested CBOW continuous bag of words but training this was not successful due to the complexity of the dataset (12 GB of memory was not enough to train the model). One possible method might be to use pretrained embeddings but we don't have time to test this at the moment. The code we tested can be found in `train_word.py`.
 
+**Some feedback on this assignment**:
+Would like there to be some more information on what you could try to create a word-RNN, there wasn't much in the assignment to guide us towards the solution. This in our case resulted in wasted time and failed attemts.
+
 # char-rnn.pytorch
 
 A PyTorch implementation of [char-rnn](https://github.com/karpathy/char-rnn) for character-level text generation. This is copied from [the Practical PyTorch series](https://github.com/spro/practical-pytorch/blob/master/char-rnn-generation/char-rnn-generation.ipynb).
