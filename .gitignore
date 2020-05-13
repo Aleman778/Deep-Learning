@@ -122,6 +122,7 @@ deepdiva/output
 
 # Don't include possible large model checkpoint files
 *.pth.tar
+*.pth
 
 # Py cache
 __pycache__/
