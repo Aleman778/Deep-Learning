@@ -44,7 +44,7 @@ def load_checkpoint(e, path):
 ##############################################################
 
 
-def train_model(e, pretrained=False):
+def train_model(e, pretrained=False, flatten_input=False):
     """Trains the model current loaded in the experiment."""
     # Labels is defined as follows
     fake_label = 0
@@ -81,6 +81,8 @@ def train_model(e, pretrained=False):
             "g_train_corrects": 0.0}
 
         for batch_num, (real_images, _) in enumerate(e.train_loader):
+            if flatten_input:
+                real_images = real_images.view(-1, e.params["im_size"]**2)
 
             ##############################################################
             # Training Discriminator with REAL (dataset) images
@@ -116,13 +118,15 @@ def train_model(e, pretrained=False):
 
             # Generate batch of latent vectors 
             noise = torch.randn(b_size, e.params["nz"], 1, 1, device=e.device)
+            if flatten_input:
+                noise = noise.view(-1, e.params["nz"])
 
             # Generate fake image batch using our generator
             fake_images = e.generator(noise)
             label.fill_(fake_label)
 
             # Make predictions for the batch of fake images using discriminator
-            output = e.discriminator(fake_images).view(-1)
+            output = e.discriminator(fake_images.detach()).view(-1)
 
             # Define prediction as the rounded value from output
             d_pred_fake = output.round()
@@ -154,12 +158,6 @@ def train_model(e, pretrained=False):
 
             # Reset the discriminator gradients
             e.generator.zero_grad()
-
-            # Generate batch of new latent vectors
-            noise = torch.randn(b_size, e.params["nz"], 1, 1, device=e.device)
-
-            # Generate new fake image batch using our generator
-            fake_images = e.generator(noise)
 
             # Since we just updated our discriminator we now want to perform
             # another forward pass of the batch of fake images trough our discriminator
@@ -207,7 +205,13 @@ def train_model(e, pretrained=False):
             # Check the progress of the generator by saving its output on fixed_noise
             if (batch_num % 500 == 0 ) or (epoch == 0 and batch_num % 50 == 0) or ((epoch == e.params["num_epochs"] - 1) and (batch_num == train_size - 1)):
                 with torch.no_grad():
-                    fake_img = e.generator(fixed_noise).detach().cpu()
+                    if flatten_input:
+                        noise = fixed_noise.view(-1, e.params["nz"])
+                    fake_img = e.generator(noise).detach().cpu()
+
+                    
+                if flatten_input: # if the image was flattened we need to deflatten it.
+                    fake_img = fake_img.view(-1, e.params["nc"], e.params["im_size"], e.params["im_size"])
                 e.training["image_list"].append(vutils.make_grid(fake_img, padding=2, normalize=True))
 
             # Increate iterations, number of batches processed

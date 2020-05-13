@@ -7,6 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/14miDLwNIEkMNeLUadrjZNnoldfz1m56i
 """
 
+import tensorflow as tf 
 import keras
 keras.__version__
 from keras import layers

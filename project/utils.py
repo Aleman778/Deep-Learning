@@ -7,6 +7,8 @@ import torch
 import torchvision.utils as vutils
 import matplotlib.pyplot as plt
 from torchvision import transforms
+from scipy.stats import norm
+
 
 
 """The utils module defines helper functions and can easily deal
@@ -23,15 +25,27 @@ def cuda_device_if_available():
     return device
 
 
-def image_transform(im_size, nc=3):
+def image_transform(im_size):
     """Returns a simple image transform resizes the image to the given size
     and crops the image, converts it to tensor and finally normalize it around 0.5"""
     return transforms.Compose([
         transforms.Resize(im_size),
         transforms.CenterCrop(im_size),
         transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ])
 
+
+def image_transform_grayscale(im_size):
+    """Returns a simple image transform resizes the image to the given size
+    and crops the image, converts it to tensor and finally normalize it around 0.5"""
+    return transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.Resize(im_size),
+        transforms.CenterCrop(im_size),
+        transforms.ToTensor(),
+        transforms.Normalize([0.5], [0.5]),
+    ])
 
 
 def plot_data_subset(path, dataset, indices=range(32), show_labels=True, figsize=(12, 8)):
@@ -53,6 +67,29 @@ def plot_data_subset(path, dataset, indices=range(32), show_labels=True, figsize
     plt.savefig(path, bbox_inches="tight", pad_inches=0.2)
 
 
+def plot():
+    """Linearly spaced coordinates on the unit square were transformed
+    through the inverse CDF (ppf) of the Gaussian
+    to produce values of the latent variables z,
+    since the prior of the latent space is Gaussian"""
+    grid_x = norm.ppf(np.linspace(0.05, 0.95, n))
+    grid_y = norm.ppf(np.linspace(0.05, 0.95, n))
+
+    for i, yi in enumerate(grid_x):
+        for j, xi in enumerate(grid_y):
+            z_sample = np.array([[xi, yi]])
+            z_sample = np.tile(z_sample, batch_size).reshape(batch_size, 2)
+            x_decoded = decoder.predict(z_sample, batch_size=batch_size)
+            digit = x_decoded[0].reshape(digit_size, digit_size)
+            figure[i * digit_size: (i + 1) * digit_size,
+                   j * digit_size: (j + 1) * digit_size] = digit
+
+    plt.figure(figsize=(10, 10))
+    plt.imshow(figure, cmap='Greys_r')
+    plt.show()
+    
+
+    
 
 class Experiment:
     """Experiment class defines all the contents of an experiment.

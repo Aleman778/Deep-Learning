@@ -17,9 +17,53 @@ def _init_weights(model):
         nn.init.normal_(model.weight.data, 1.0, 0.02)
         nn.init.constant_(model.bias.data, 0)
 
+        
+def densegan4_discriminator(e):
+    """Discriminator model for GANs using 4-layer fully connected network."""
+    input_size = e.params["im_size"]**2 # square image
+    ndf = e.params["ndf"] # number of discriminator features
+    model = nn.Sequential(
+        nn.Linear(input_size, ndf),
+        nn.LeakyReLU(0.2, inplace=True),
+
+        nn.Linear(ndf,   ndf//2),
+        nn.LeakyReLU(0.2, inplace=True),
+
+        nn.Linear(ndf//2, ndf//4),
+        nn.LeakyReLU(0.2, inplace=True),
+
+        nn.Linear(ndf//4, 1),
+        nn.Sigmoid()
+    ).to(e.device)
+    return model
+    
+
+def densegan4_generator(e):
+    """Generator model for GANs using 4-layer fully connected network."""
+    input_size = e.params["nz"] # size of latent vector z
+    output_size = e.params["im_size"]**2 # output size is the squared of the image size
+    ngf = e.params["ndf"] # number of discriminator features
+    model = nn.Sequential(
+        nn.Linear(input_size, ngf),
+        nn.LeakyReLU(0.2, inplace=True),
+        nn.Dropout(0.3),
+
+        nn.Linear(ngf,   ngf*2),
+        nn.LeakyReLU(0.2, inplace=True),
+        nn.Dropout(0.3),
+
+        nn.Linear(ngf*2, ngf*4),
+        nn.LeakyReLU(0.2, inplace=True),
+        nn.Dropout(0.3),
+
+        nn.Linear(ngf*4, output_size),
+        nn.Tanh()
+    ).to(e.device)
+    return model
+    
 
 def dcgan3_discriminator(e):
-    """Discriminator model for GANs using CNN network. This is based on the dcgan paper
+    """Discriminator model for GANs using CNN. This is based on the dcgan paper
     [DCGAN paper](https://arxiv.org/pdf/1511.06434.pdf) except it uses 3 conv layers instead of 4.
     This model should work perfectly images of size 32 or smaller.
 
@@ -55,7 +99,7 @@ def dcgan3_discriminator(e):
 
 
 def dcgan3_generator(e):
-    """Generator model for GANs using CNN network. This is based on the dcgan paper
+    """Generator model for GANs using CNN. This is based on the dcgan paper
     [DCGAN paper](https://arxiv.org/pdf/1511.06434.pdf) except it uses 3 conv layers instead of 4.
     This model should generate images of size 32 or smaller.
 
@@ -92,4 +136,81 @@ def dcgan3_generator(e):
     ).to(e.device)
     model.apply(_init_weights)
     return model
+
+
+# def vae_decoder(e):
+#     """Discriminator model for VAEs using CNN.
+#     e - the exeriment instance with parameters set:
+#     im_size - the shape of image e.g. mnist has (28, 28, 1)
+#     """
+#     im_size = e.params["im_size"]
+
+#     input_img = keras.Input(shape=img_shape)
+
+#     model = nn.Sequential(
+#         nn.Conv2D(32, 3, padding='same', activation='relu')(input_img)
+#         model = nn.Conv2D(64, 3, padding='same', activation='relu', strides=(2, 2))(model)
+#         model = nn.Conv2D(64, 3, padding='same', activation='relu')(model)
+#         model = nn.Conv2D(64, 3, padding='same', activation='relu')(model)
+#         }
+#     shape_before_flattening = K.int_shape(model)
+
+#     model = layers.Flatten()(model)
+#     model = layers.Dense(32, activation='relu')(model)
+
+#     z_mean =    layers.Dense(latent_dim)(model)
+#     z_log_var = layers.Dense(latent_dim)(model)
+#     return model
+
+
+# def vae_latent_sampling(args):
+#     z_mean, z_log_var = args
+#     epsilon = K.random_normal(shape=(K.shape(z_mean)[0], latent_dim), mean=0., stddev=1.)
+#     return z_mean + K.exp(z_log_var) * epsilon
+
+
+# def vae_encoder(e):
+#     z_mean =    layers.Dense(latent_dim)(x)
+#     z_log_var = layers.Dense(latent_dim)(x)
+
+#     # Latent vector
+#     z = layers.Lambda(sampling)([z_mean, z_log_var])
+
+#     # This is the input where we will feed `z`.
+#     decoder_input = layers.Input(K.int_shape(z)[1:])
     
+#     # Upsample to the correct number of units
+#     x = layers.Dense(np.prod(shape_before_flattening[1:]), activation='relu')(decoder_input)
+
+#     # Reshape into an image of the same shape as before our last `Flatten` layer
+#     x = layers.Reshape(shape_before_flattening[1:])(x)
+
+#     # We then apply then reverse operation to the initial
+#     # stack of convolution layers: a `Conv2DTranspose` layers
+#     # with corresponding parameters.
+#     x = layers.Conv2DTranspose(32, 3, padding='same', activation='relu', strides=(2, 2))(x)
+#     x = layers.Conv2D(1, 3, padding='same', activation='sigmoid')(x)
+#     # We end up with a feature map of the same size as the original input.
+
+#     # This is our decoder model.
+#     decoder = Model(decoder_input, x)
+
+#     # We then apply it to `z` to recover the decoded `z`.
+#     return decoder(z)
+
+
+# class CustomVariationalLayer(keras.layers.Layer):
+#     def vae_loss(self, x, z_decoded):
+#         x = K.flatten(x)
+#         z_decoded = K.flatten(z_decoded)
+#         xent_loss = keras.metrics.binary_crossentropy(x, z_decoded)
+#         kl_loss = -5e-4 * K.mean(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+#         return K.mean(xent_loss + kl_loss)
+
+#     def call(self, inputs):
+#         x = inputs[0]
+#         z_decoded = inputs[1]
+#         loss = self.vae_loss(x, z_decoded)
+#         self.add_loss(loss, inputs=inputs)
+#         # We don't use this output.
+#         return x
