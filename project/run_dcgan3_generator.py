@@ -30,7 +30,6 @@ if __name__ == '__main__':
     # Hyperparameters
     e.params["shuffle"]     = True # Shuffle the contents in the dataset
     e.params["num_workers"] = 4    # Number of worker threads for dataloader
-    e.params["image_size"]  = 32   # Size of input images (images are resized to this using transformer)
     e.params["batch_size"]  = 128  # Size of one batch during training
     e.params["nc"]          = 3    # Number of channels in the training images (color RGB uses 3 channels)
     e.params["nz"]          = 100  # Size of z latent vector (i.e. size of generator input)

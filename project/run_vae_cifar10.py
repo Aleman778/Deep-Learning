@@ -23,8 +23,10 @@ if __name__ == '__main__':
     e.params["batch_size"]  = 128  # Size of one batch during training
     e.params["nc"]          = 3    # Number of channels in the training images (color RGB uses 3 channels)
     e.params["nz"]          = 100  # Size of z latent vector (i.e. size of generator input)
-    e.params["ndf"]         = 1024 # Number of features in the discriminator network.
-    e.params["ngf"]         = 256  # Number of features in the generator network.
+    e.params["nef"]         = 64   # Number of features in the discriminator network.
+    e.params["ndf"]         = 64   # Number of features in the generator network.
+    e.params["mean"]        = 0.0  # Mean value of 
+    e.params["stdev"]       = 1.0  # 
     e.params["im_size"]     = 32   # Size of the images discriminated and generated.
     e.params["num_epochs"]  = e.input_int("number of epochs", 5) # Number of epochs 
     e.params["lr"]          = 0.0002       # Learning rate for optimizer
@@ -42,9 +44,8 @@ if __name__ == '__main__':
     utils.plot_data_subset(e.fname("dataset_image.png"), train_dataset)
 
     # Setup the two models
-    e.generator = models.dcgan3_generator(e)
-    e.discriminator = models.dcgan3_discriminator(e)
-
+    e.encoder = models.VAE_Encoder(e)
+    
     # Criterion (or loss function) used
     e.criterion = nn.BCELoss()
 
@@ -53,5 +54,5 @@ if __name__ == '__main__':
     e.d_optimizer = optim.Adam(e.discriminator.parameters(), lr=e.params["lr"], betas=e.params["betas"])
 
     # Train model and plot results
-    gantraining.train_model(e)
-    gantraining.plot_all(e)
+
+    e.encoder(next(iter(e.train_loader)))

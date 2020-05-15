@@ -31,6 +31,7 @@ x = layers.Conv2D(64, 3, padding='same', activation='relu', strides=(2, 2))(x)
 x = layers.Conv2D(64, 3, padding='same', activation='relu')(x)
 x = layers.Conv2D(64, 3, padding='same', activation='relu')(x)
 shape_before_flattening = K.int_shape(x)
+print(shape_before_flattening)
 
 x = layers.Flatten()(x)
 x = layers.Dense(32, activation='relu')(x)

@@ -1,3 +1,6 @@
+"""Generative Adversarial Network training code is slightly modified from 
+[DCGAN PyTorch tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html)"""
+
 import logging
 import numpy as np
 import torch

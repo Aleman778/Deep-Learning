@@ -1,3 +1,3 @@
-15:06:52 root INFO Initialzed experiment: test
-15:06:52 root INFO Training on: GeForce GTX 1050 Ti
-15:06:52 root INFO Initialize seed: 1588943212.258184
+11:28:00 root INFO Initialzed experiment: test
+11:28:01 root INFO Training on: GeForce GTX 1050 Ti
+11:28:01 root INFO Initialize seed: 1589448481.0858529
