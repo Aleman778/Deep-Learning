@@ -1,4 +1,0 @@
-14:20:46 root INFO Initialzed experiment: test2
-14:20:47 root INFO Training on: GeForce GTX 1050 Ti
-14:20:47 root INFO Initialize seed: 1588940447.0088637
-14:20:48 root ERROR Could not find checkpoint file `experiments/dcgan3_cifar10/test/checkpoint.pth`, exiting.
