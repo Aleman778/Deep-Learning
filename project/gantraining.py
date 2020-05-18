@@ -220,10 +220,10 @@ def train_model(e, pretrained=False, flatten_input=False):
             # Increate iterations, number of batches processed
             iteration += 1 
 
-        g_epoch_loss = epoch_stats["d_train_loss"]/train_size
-        g_epoch_acc  = epoch_stats["d_train_corrects"]/(train_size*e.params["batch_size"]*2)
-        d_epoch_loss = epoch_stats["g_train_loss"]/train_size
-        d_epoch_acc  = epoch_stats["g_train_corrects"]/(train_size*e.params["batch_size"])
+        d_epoch_loss = epoch_stats["d_train_loss"]/train_size
+        d_epoch_acc  = epoch_stats["d_train_corrects"]/(train_size*e.params["batch_size"]*2)
+        g_epoch_loss = epoch_stats["g_train_loss"]/train_size
+        g_epoch_acc  = epoch_stats["g_train_corrects"]/(train_size*e.params["batch_size"])
             
         # After finishing an epoch print the epoch stats
         logging.info("Epoch {}/{}: \t[D loss: {:.4f}, acc.:{:.4f}]\t[G loss: {:.4f}, acc.:{:.4f}]".format(
