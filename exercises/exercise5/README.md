@@ -12,13 +12,13 @@ This was already done in the provided code repository above.
 
 ### 1.3 Running the program for 20K and 100K iterations using both losses
 #### Running the original loss from the GAN paper we get the following results
-20K iterations             100K iterations
+&nbsp; **20K iterations** &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; **100K iterations**
 
 ![Original Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_20k.png)
 ![Original Loss 100K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_100k.png)
 
 #### Running the logistic loss we get the following results
-20K iterations             100K iterations
+&nbsp; **20K iterations** &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; **100K iterations**
 
 ![Logistic Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_logistic_loss_20k.png)
 ![Logistic Loss 100K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_logistic_loss_100k.png)
