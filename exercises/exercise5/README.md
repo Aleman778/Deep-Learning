@@ -12,17 +12,15 @@ This was already done in the provided code repository above.
 
 ### 1.3 Running the program for 20K and 100K iterations using both losses
 #### Running the original loss from the GAN paper we get the following results
-20K iterations:
-![Original Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_20k.png)
+20K iterations             100K iterations
 
-100K iterations:
+![Original Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_20k.png)
 ![Original Loss 100K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_100k.png)
 
 #### Running the logistic loss we get the following results
-20K iterations:
-![Logistic Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_logistic_loss_20k.png)
+20K iterations             100K iterations
 
-100K iterations:
+![Logistic Loss 20K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_logistic_loss_20k.png)
 ![Logistic Loss 100K iterations](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task1_vanilla_gan_logistic_loss_100k.png)
 
 ## Task 2 Train CNN MNIST model to create adversarial images
@@ -49,4 +47,4 @@ This was already done in the provided code repository above.
 
 ## Task 3 DCGAN on CelebA dataset (from project work)
 For fun we ran our DCGAN code from the project work on the CelebA dataset:
-![DCGAN on CelebA](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task3_dcgan_celeba)
+![DCGAN on CelebA](https://raw.githubusercontent.com/Aleman778/Deep-Learning/master/exercises/exercise5/task3_dcgan_celeba.png)
