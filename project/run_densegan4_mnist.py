@@ -29,7 +29,7 @@ if __name__ == '__main__':
     e.params["num_epochs"]  = e.input_int("number of epochs", 5) # Number of epochs 
     e.params["lr"]          = 0.0002       # Learning rate for optimizer
     e.params["betas"]       = (0.5, 0.999) # Betas hyperparameter for Adam optimizers
-    e.params["patience"]    = 7 # Number of epochs to wait before early stopping
+    e.params["patience"]    = 50 # Number of epochs to wait before early stopping
 
     # Setup the MNIST dataset
     transform = utils.image_transform_grayscale(e.params["im_size"])

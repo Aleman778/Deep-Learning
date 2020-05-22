@@ -21,7 +21,7 @@ import models
 ##############################################################
 
 
-def save_checkpoint(e, epoch, iteration):
+def save_checkpoint(e, epoch, iteration, filename="checkpoint.pth"):
     """Stores GAN training checkpoint. Can be restored via load_checkpoint."""
     data = {"epoch": epoch,
             "iteration": iteration,
@@ -29,7 +29,7 @@ def save_checkpoint(e, epoch, iteration):
             "d_state_dict": e.discriminator.state_dict(),
             "g_optimizer_state_dict": e.g_optimizer.state_dict(),
             "d_optimizer_state_dict": e.d_optimizer.state_dict()}
-    training._save_checkpoint(e, data)
+    training._save_checkpoint(e, data, filename)
 
 
 def load_checkpoint(e, path):
@@ -208,6 +208,7 @@ def train_model(e, pretrained=False, flatten_input=False):
             # Check the progress of the generator by saving its output on fixed_noise
             if (batch_num % 500 == 0 ) or (epoch == 0 and batch_num % 50 == 0) or ((epoch == e.params["num_epochs"] - 1) and (batch_num == train_size - 1)):
                 with torch.no_grad():
+                    noise = fixed_noise
                     if flatten_input:
                         noise = fixed_noise.view(-1, e.params["nz"])
                     fake_img = e.generator(noise).detach().cpu()
@@ -248,6 +249,8 @@ def train_model(e, pretrained=False, flatten_input=False):
                 save_checkpoint(e, epoch, iteration)
             
             if training._early_stopping(e, g_epoch_loss):
+                logging.info("Saving checkpoint before exiting training...")
+                save_checkpoint(e, epoch, iteration, filename="last_epoch")
                 return
 
         

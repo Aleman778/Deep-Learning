@@ -15,7 +15,7 @@ import gantraining
 
 if __name__ == '__main__':
     # Setup a new experiment, keeps results in one folder
-    e = utils.create_experiment("experiments/dcgan3_cifar10")
+    e = utils.create_experiment("experiments/vae_cifar10")
 
     # Hyperparameters
     e.params["shuffle"]     = True # Shuffle the contents in the dataset
@@ -50,8 +50,8 @@ if __name__ == '__main__':
     e.criterion = nn.BCELoss()
 
     # The optimizer for weight updating
-    e.g_optimizer = optim.Adam(e.generator.parameters(), lr=e.params["lr"], betas=e.params["betas"])
-    e.d_optimizer = optim.Adam(e.discriminator.parameters(), lr=e.params["lr"], betas=e.params["betas"])
+    # e.g_optimizer = optim.Adam(e.encoder.parameters(), lr=e.params["lr"], betas=e.params["betas"])
+    # e.d_optimizer = optim.Adam(e.discriminator.parameters(), lr=e.params["lr"], betas=e.params["betas"])
 
     # Train model and plot results
 

@@ -1,0 +1,3 @@
+13:42:08 root INFO Initialzed experiment: generate_mnist_images
+13:42:08 root INFO Training on: GeForce GTX 1050 Ti
+13:42:08 root INFO Initialize seed: 1590061328.7316835

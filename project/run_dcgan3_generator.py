@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torchvision
 import torchvision.utils as vutils
+import matplotlib
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from torch import nn, optim
@@ -24,6 +25,7 @@ def plot_images(image_tensor, filename):
 
     
 if __name__ == '__main__':
+    matplotlib.rcParams["image.interpolation"] = 'nearest'
     # Setup a new experiment, keeps results in one folder
     e = utils.create_experiment("experiments/dcgan3_cifar10")
 
